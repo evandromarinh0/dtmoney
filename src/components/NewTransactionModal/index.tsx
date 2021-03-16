@@ -1,5 +1,5 @@
 import Modal from 'react-modal';
-import { useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 
 import closeModal from '../../assets/x.svg';
 import incomeImg from '../../assets/income.svg';
@@ -10,6 +10,7 @@ import {
   TransactionTypeContainer,
   RadioBox
 } from './styles';
+import { TransactionsContext } from '../../hooks/TransactionsContext';
 
 interface NewTransactionModalProps {
   isOpen: boolean;
@@ -17,7 +18,29 @@ interface NewTransactionModalProps {
 }
 
 export function NewTransactionModal({ isOpen, onCloseRequest }: NewTransactionModalProps) {
+  const { createTransaction } = useContext(TransactionsContext);
+
   const [type, setType] = useState('deposit');
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState(0);
+  const [category, setCategory] = useState('');
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    await createTransaction({
+      title,
+      amount,
+      category,
+      type
+    });
+
+    onCloseRequest();
+    setType('deposit');
+    setTitle('');
+    setAmount(0);
+    setCategory('');
+  }
 
   return(
     <Modal 
@@ -29,10 +52,10 @@ export function NewTransactionModal({ isOpen, onCloseRequest }: NewTransactionMo
       <button onClick={onCloseRequest} className="react-modal-close" type="button">
         <img src={closeModal} alt="Fechar Modal"/>
       </button>
-      <Container>
+      <Container onSubmit={handleSubmit}>
         <h2>Cadastrar transação</h2>
-        <input placeholder="Título" />
-        <input placeholder='Valor' type="number" />
+        <input placeholder="Título" value={title} onChange={e => setTitle(e.target.value)} />
+        <input placeholder='Valor' type="number" value={amount} onChange={e => setAmount(Number(e.target.value))} />
 
         <TransactionTypeContainer>
           <RadioBox 
@@ -55,8 +78,7 @@ export function NewTransactionModal({ isOpen, onCloseRequest }: NewTransactionMo
             <span>Saída</span>
           </RadioBox>
         </TransactionTypeContainer>
-
-        <input placeholder="Categoria" />
+        <input placeholder="Categoria" value={category} onChange={e => setCategory(e.target.value)} />
         <button type="submit">Cadastrar</button>
       </Container>
     </Modal>
